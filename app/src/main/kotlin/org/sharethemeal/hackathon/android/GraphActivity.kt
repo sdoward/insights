@@ -15,10 +15,10 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException
 import com.google.api.services.sheets.v4.Sheets
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposables
 import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.schedulers.Schedulers
+import javax.inject.Inject
 
 
 class GraphActivity : AppCompatActivity() {
@@ -26,50 +26,28 @@ class GraphActivity : AppCompatActivity() {
     companion object {
         val PERMISSIONS = 200
         val ACCOUNT = 300
-        val SPREAD_SHEET_ID = "1BbaM4ghKe2Y6VCySpnnn7JyTr2pghRpR2VOUBoWE_SM"
         fun start(context: Context) {
             context.startActivity(Intent(context, GraphActivity::class.java))
         }
     }
 
-    val sheets: Sheets by lazy {
-        com.google.api.services.sheets.v4.Sheets.Builder(
-                AndroidHttp.newCompatibleTransport(), JacksonFactory.getDefaultInstance(), credential)
-                .setApplicationName("Google Sheets API Android Quickstart")
-                .build()
-    }
+    @Inject
+    lateinit var insightService: InsightService
 
-    val sharedPreferences: SharedPreferences by lazy {
-        getSharedPreferences("default", 0)
-    }
-
-    val credential: GoogleAccountCredential by lazy {
-        GoogleAccountCredential.usingOAuth2(
-                getApplicationContext(), arrayListOf(SheetsScopes.SPREADSHEETS_READONLY))
-                .setBackOff(ExponentialBackOff())
-    }
+    var disposable = Disposables.empty()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.graph_activity)
         setSupportActionBar(toolbar)
+        (application as InsightsApplication).appComponent.inject(this)
+
         fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).show()
         }
 
         sparkView.animateChanges = true
-
-        credential.selectedAccountName = sharedPreferences.getString("userName", "")
-        Single.create<List<Int>> {
-            val valueRange = sheets.spreadsheets()
-                    .values()
-                    .get(SPREAD_SHEET_ID, "Daily_track!H:J")
-                    .execute()
-            val values = valueRange.getValues()
-            it.onSuccess(values.subList(11, values.size).map { it[0].toString().toInt() })
-        }
-                .map { it.map { DataPoint(0, it) } }
-                .subscribeOn(Schedulers.io())
+        disposable = insightService.getDonatedMeals()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeBy(
                         onSuccess = {
@@ -84,4 +62,8 @@ class GraphActivity : AppCompatActivity() {
                 )
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        disposable.dispose()
+    }
 }
