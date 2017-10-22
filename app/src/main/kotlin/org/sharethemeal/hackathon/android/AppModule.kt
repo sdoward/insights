@@ -51,15 +51,14 @@ class AppModule(private val application: Application) {
     fun provideFetcher(sheets: Sheets): Store<List<DataPoint>, BarCode> {
         return StoreBuilder.parsedWithKey<BarCode, List<DataPoint>, List<DataPoint>>()
                 .fetcher {
-                    Single.create<List<Int>> {
+                    Single.create<List<DataPoint>> {
                         val valueRange = sheets.spreadsheets()
                                 .values()
-                                .get(SPREAD_SHEET_ID, "Daily_track!H:J")
+                                .get(SPREAD_SHEET_ID, "Daily_track!C:J")
                                 .execute()
                         val values = valueRange.getValues()
-                        it.onSuccess(values.subList(11, values.size).map { it[0].toString().toInt() })
+                        it.onSuccess(values.subList(11, values.size).map { DataPoint(0, it[5].toString().toInt()) })
                     }
-                            .map { it.map { DataPoint(0, it) } }
                 }
                 .open()
     }
