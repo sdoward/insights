@@ -2,6 +2,7 @@ package org.sharethemeal.hackathon.android
 
 import android.Manifest
 import android.accounts.AccountManager
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -17,6 +18,11 @@ import com.google.api.services.sheets.v4.SheetsScopes
 import kotlinx.android.synthetic.main.activity_start.*
 
 class StartActivity : AppCompatActivity() {
+
+    companion object {
+        val PERMISSIONS = 200
+        val ACCOUNT = 300
+    }
 
     val sharedPreferences: SharedPreferences by lazy {
         getSharedPreferences("default", 0)
@@ -45,11 +51,11 @@ class StartActivity : AppCompatActivity() {
         setPermissionsImageView()
 
         permissionButton.setOnClickListener {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.GET_ACCOUNTS), GraphActivity.PERMISSIONS);
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.GET_ACCOUNTS), PERMISSIONS);
         }
 
         accountButton.setOnClickListener {
-            startActivityForResult(credential.newChooseAccountIntent(), GraphActivity.ACCOUNT);
+            startActivityForResult(credential.newChooseAccountIntent(), ACCOUNT);
         }
 
         fab.setOnClickListener { view ->
@@ -86,7 +92,7 @@ class StartActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == GraphActivity.ACCOUNT) {
+        if (requestCode == ACCOUNT) {
             val accountName = data?.getStringExtra(AccountManager.KEY_ACCOUNT_NAME)
             sharedPreferences.edit().putString("userName", accountName).commit()
             credential.selectedAccountName = accountName;

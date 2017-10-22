@@ -7,6 +7,6 @@ import javax.inject.Singleton
 @Component(modules = arrayOf(AppModule::class))
 interface AppComponent {
 
-    fun inject(graphActivity: GraphActivity)
+    fun inject(graphActivity: DonatedMealsView)
 
 }
