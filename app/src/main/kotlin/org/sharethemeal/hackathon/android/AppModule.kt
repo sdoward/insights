@@ -15,6 +15,9 @@ import com.nytimes.android.external.store3.base.impl.StoreBuilder
 import dagger.Module
 import dagger.Provides
 import io.reactivex.Single
+import org.threeten.bp.DateTimeUtils
+import org.threeten.bp.LocalDate
+import org.threeten.bp.format.DateTimeFormatter
 import javax.inject.Singleton
 
 @Module
@@ -22,6 +25,8 @@ class AppModule(private val application: Application) {
 
     companion object {
         val SPREAD_SHEET_ID = "1BbaM4ghKe2Y6VCySpnnn7JyTr2pghRpR2VOUBoWE_SM"
+        var formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
     }
 
     @Provides
@@ -57,7 +62,8 @@ class AppModule(private val application: Application) {
                                 .get(SPREAD_SHEET_ID, "Daily_track!C:J")
                                 .execute()
                         val values = valueRange.getValues()
-                        it.onSuccess(values.subList(11, values.size).map { DataPoint(0, it[5].toString().toInt()) })
+                        it.onSuccess(values.subList(11, values.size)
+                                .map { DataPoint(it[0].toString(), it[5].toString().toInt()) })
                     }
                 }
                 .open()

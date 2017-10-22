@@ -1,3 +1,3 @@
 package org.sharethemeal.hackathon.android
 
-data class DataPoint(val time: Int, val mealCount: Int)
+data class DataPoint(val time: String, val mealCount: Int)
